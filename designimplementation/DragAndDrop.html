@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+    <style>
+        #source {
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            display: inline-block;
+        }
+
+        #target {
+            width: 200px;
+            height: 150px;
+            overflow: hidden;
+            border: #ccc 1px dashed;
+        }
+
+        div {
+            margin: 5px;
+        }
+
+        .arena {
+            display: grid;
+            grid-template-columns: repeat(2, auto);
+            gap: 10px;
+            width: 100px;
+
+        }
+
+        .arena_item {
+            width: 50px;
+            height: 50px;
+            background-color: #fff;
+            border: 1px #ccc dashed;
+            z-index: 2;
+        }
+    </style>
+</head>
+
+<body onload="render()">
+    <div id="source" draggable="true"></div>
+    <div id="target"></div>
+    <div class="arena" id="arena" dropzone="">
+        <div class="arena_item" id="item"></div>
+        <div class="arena_item" id="item"></div>
+        <div class="arena_item" id="item"></div>
+        <div class="arena_item" id="item"></div>
+
+    </div>
+    <script>
+        const arenaItem = () => {
+            const arenaItemTag = document.createElement
+        }
+        const render = () => {
+            console.log('click')
+                arena.innerHTML = ''
+            for (let i = 0; i < 8; i++) { // выведет 0, затем 1, затем 2
+                arena.appendChild(arenaItem)
+            }
+        }
+
+
+        const L = [
+            [1, 0],
+            [1, 1]
+        ]
+        const dropedItem = (e) => {
+            console.log('dsad')
+        }
+        const source = document.getElementById("source");
+        source.onclick = render
+        const arena = document.getElementById("arena");
+        const items = document.querySelectorAll('.arena_item')
+        let dragged = null
+        let lastValue = null
+        let newValue = null
+        source.addEventListener("dragstart", (e) => dragged = e.target);
+
+        console.log(items)
+        const target = document.getElementById("target");
+        target.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            console.log("Dragover operation");
+        });
+
+        target.addEventListener("drop", (e) => e.target.appendChild(dragged.cloneNode()));
+        items.forEach((item) => {
+            item.value = L
+            item.addEventListener("dragstart", (e) => dragged = e.target)
+            item.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                return true
+            })
+
+            item.addEventListener("drop", (e) => {
+                e.preventDefault();
+                // target.appendChild(dragged.cloneNode())
+                newValue = e.target.value
+                lastValue = e.target.value
+
+                console.log(e.target.value)
+                return false
+            })
+
+        })
+
+
+
+    </script>
+</body>
+
+</html>

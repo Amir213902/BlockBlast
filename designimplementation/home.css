@@ -45,7 +45,7 @@ section.home {
         object-fit: contain;
         opacity: 0.3;
         background-blend-mode: soft-light;
-
+        z-index: -1;
         &.top {
             top: 0;
         }
