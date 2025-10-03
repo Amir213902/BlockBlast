@@ -1,0 +1,112 @@
+section.game {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 30px 15px;
+    flex-direction: column;
+
+    .game_navigations {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        /* background-color: red; */
+
+    }
+
+
+    .game_navigations_go {
+
+        background-color: transparent;
+        border: 0;
+        outline: none;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .game_navigations_indicator {
+        background-color: #002263;
+        border: 1px solid #4980E8;
+        padding: 10px 20px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border-radius: 25px;
+        font-size: 22px;
+        font-weight: bold;
+
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .game_container {
+        width: 100%;
+        /* background-color: red; */
+        height: 600px;
+        margin: auto;
+        
+    }
+
+    .game_container_arena {
+        /* height: 90vw; */
+        width: 398px;
+        height: 398px;
+        object-fit: contain;
+        background-color: #000D4D;
+        border: 2px solid #4980E8;
+        display: grid;
+        align-items: center;
+        justify-items: center;
+        grid-template-columns: repeat(8, auto);
+        gap: 4px;
+        padding: 8px;
+        border-radius: 10px;
+    }
+
+    .game_container_arena_item {
+        /* width: 44px;
+        height: 44px; */
+        width: 100%;
+        height: 100%;
+        /* background-color: red; */
+        background-color: #15118E;
+
+        border-radius: 4px;
+        display: flex;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+
+
+    .game_container_drops {
+      
+        width: 100%;
+        height: 100px;
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .game_container_drops_item {
+        background-color: #2D119680;
+        border: 1px solid #6B4AFF;
+        width: 104px;
+        height: 104px;
+        border-radius: 10px;
+        
+    }
+}
