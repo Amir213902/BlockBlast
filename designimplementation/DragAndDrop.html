@@ -5,30 +5,31 @@
     <meta charset="utf-8" />
     <title>METANIT.COM</title>
     <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100vh;
+        }
+
         #source {
-            width: 50px;
-            height: 50px;
+            width: 150px;
+            height: 150px;
             background-color: red;
             display: inline-block;
-        }
-
-        #target {
-            width: 200px;
-            height: 150px;
-            overflow: hidden;
-            border: #ccc 1px dashed;
-        }
-
-        div {
-            margin: 5px;
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
         }
 
         .arena {
             display: grid;
             grid-template-columns: repeat(2, auto);
             gap: 10px;
-            width: 100px;
-
+            width: 400px;
+            height: 400px;
+            border: 1px dashed #ccc;
         }
 
         .arena_item {
@@ -37,14 +38,16 @@
             background-color: #fff;
             border: 1px #ccc dashed;
             z-index: 2;
+            &.active {
+                background-color: red;
+            }
         }
     </style>
 </head>
 
-<body onload="render()">
-    <div id="source" draggable="true"></div>
-    <div id="target"></div>
-    <div class="arena" id="arena" dropzone="">
+<body>
+    <div id="source"></div>
+    <div class="arena" id="arena">
         <div class="arena_item" id="item"></div>
         <div class="arena_item" id="item"></div>
         <div class="arena_item" id="item"></div>
@@ -52,63 +55,37 @@
 
     </div>
     <script>
-        const arenaItem = () => {
-            const arenaItemTag = document.createElement
+        const source = document.getElementById('source')
+        const arena = document.getElementById('arena')
+        const cells = document.querySelectorAll('.arena_item')
+        function moveAt(pageX, pageY) {
+            source.style.left = pageX - source.offsetWidth / 2 + 'px';
+            source.style.top = pageY - source.offsetHeight / 2 + 'px';
         }
-        const render = () => {
-            console.log('click')
-                arena.innerHTML = ''
-            for (let i = 0; i < 8; i++) { // выведет 0, затем 1, затем 2
-                arena.appendChild(arenaItem)
-            }
+        function init() {
+            arena.innerHTML = ''
         }
 
+        source.addEventListener('touchmove', dragStart)
 
-        const L = [
-            [1, 0],
-            [1, 1]
-        ]
-        const dropedItem = (e) => {
-            console.log('dsad')
-        }
-        const source = document.getElementById("source");
-        source.onclick = render
-        const arena = document.getElementById("arena");
-        const items = document.querySelectorAll('.arena_item')
-        let dragged = null
-        let lastValue = null
-        let newValue = null
-        source.addEventListener("dragstart", (e) => dragged = e.target);
-
-        console.log(items)
-        const target = document.getElementById("target");
-        target.addEventListener("dragover", (event) => {
+        function dragStart (event) {
             event.preventDefault();
-            console.log("Dragover operation");
-        });
 
-        target.addEventListener("drop", (e) => e.target.appendChild(dragged.cloneNode()));
-        items.forEach((item) => {
-            item.value = L
-            item.addEventListener("dragstart", (e) => dragged = e.target)
-            item.addEventListener("dragover", (e) => {
-                e.preventDefault();
-                return true
-            })
+            let touch = event.targetTouches[0];
 
-            item.addEventListener("drop", (e) => {
-                e.preventDefault();
-                // target.appendChild(dragged.cloneNode())
-                newValue = e.target.value
-                lastValue = e.target.value
+            source.style.top = `${touch.pageY - (source.offsetHeight / 2) - 160}px`
+            source.style.left = `${touch.pageX - (source.offsetWidth / 2)}px`
 
-                console.log(e.target.value)
-                return false
-            })
+            cells.forEach(element => {
+                if(source.getBoundingClientRect().top + source.offsetHeight / 2 > element.getBoundingClientRect().bottom ){
+                    element.classList.add('active')
+                }else{
+                    element.classList.remove('active')
+                }
+            });
+        }
 
-        })
-
-
+        // init()
 
     </script>
 </body>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Blaster</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .game-area {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 1px;
+            background: #ddd;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            transition: all 0.2s;
+        }
+
+        .cell.filled {
+            background: #4CAF50;
+            border-color: #45a049;
+        }
+
+        .cell.highlight {
+            background: #81C784;
+        }
+
+        .cell.invalid {
+            background: #ffcdd2;
+        }
+
+        .blocks-panel {
+            min-width: 200px;
+        }
+
+        .blocks-panel h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .blocks-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .block {
+            display: grid;
+            gap: 2px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            cursor: grab;
+            transition: transform 0.2s;
+            justify-self: center;
+        }
+
+        .block:hover {
+            transform: scale(1.05);
+        }
+
+        .block.dragging {
+            cursor: grabbing;
+            opacity: 1;
+            transform: rotate(5deg);
+        }
+
+        .block-cell {
+            width: 20px;
+            height: 20px;
+            background: #2196F3;
+            border: 1px solid #1976D2;
+            border-radius: 2px;
+        }
+
+        .block-cell.empty {
+            background: transparent;
+            border: none;
+        }
+
+        #new-blocks-btn {
+            width: 100%;
+            padding: 10px;
+            background: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #new-blocks-btn:hover {
+            background: #F57C00;
+        }
+
+        .instructions {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .grid {
+                grid-template-columns: repeat(10, 25px);
+                grid-template-rows: repeat(10, 25px);
+            }
+
+            .cell {
+                width: 25px;
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>Block Blaster</h1>
+        <div class="score">Score: <span id="score">0</span></div>
+
+        <div class="game-area">
+            <div class="grid" id="grid"></div>
+
+            <div class="blocks-panel">
+                <h3>Available Blocks</h3>
+                <div class="blocks-container" id="blocks-container"></div>
+                <button id="new-blocks-btn">New Blocks</button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <p>Drag blocks to the grid to place them. Clear rows and columns to score points!</p>
+        </div>
+    </div>
+
+    <script>
+        const log = console.log
+        class BlockBlaster {
+            constructor() {
+                this.grid = Array(10).fill().map(() => Array(10).fill(0));
+                this.score = 0;
+                this.currentBlocks = [];
+                this.blockShapes = [
+                    [
+                        [1]
+                    ], // Single
+                    [
+                        [1, 1]
+                    ], // 2x1
+                    [
+                        [1],
+                        [1]
+                    ], // 1x2
+                    [
+                        [1, 1],
+                        [1, 1]
+                    ], // 2x2
+                    [
+                        [1, 1, 1]
+                    ], // 3x1
+                    [
+                        [1],
+                        [1],
+                        [1]
+                    ], // 1x3
+                    [
+                        [1, 1, 0],
+                        [0, 1, 1]
+                    ], // Z-shape
+                    [
+                        [0, 1, 1],
+                        [1, 1, 0]
+                    ], // S-shape
+                    [
+                        [1, 1, 1],
+                        [1, 0, 0]
+                    ], // L-shape
+                ];
+                this.init();
+            }
+
+            init() { // Инициализация сетки (создание сетки, генерация новых блоков, обновление пойнтов)
+                this.createGrid(); // создание сетки
+                this.generateNewBlocks(); // генерация новых блоков
+                this.updateScore(); // обновление пойнтов
+                document.getElementById('new-blocks-btn').addEventListener('click', () => this.generateNewBlocks()); //генерация блоков в случае нажаитии на кнопку
+            }
+
+            createGrid() { // функция создание сетки
+                const gridElement = document.getElementById('grid'); // подключение к Html элементу
+                gridElement.innerHTML = ''; // очищение сетки от дочерних элементов
+
+                for (let r = 0; r < 10; r++) { // перебор рядов сетки
+                    for (let c = 0; c < 10; c++) { // перебор колонок сетки
+                        const cell = document.createElement('div'); // создание плиток в сетке
+                        cell.className = 'cell'; // добавление класса для стилей
+                        cell.dataset.row = r; //
+                        cell.dataset.col = c; //
+                        gridElement.appendChild(cell); // добавление элемента в сетку
+                    }
+                }
+                console.log(gridElement)
+                console.dir(gridElement.getBoundingClientRect())
+                this.setupDropZone(gridElement); // установление портовой зоны
+                log(this.currentBlocks)
+            }
+
+            setupDropZone(gridElement) { // функция портовой зоны
+                gridElement.addEventListener('dragover', (e) => { // в случае наведенной курсором с блоком над портовой зоны
+                    e.preventDefault(); // отмена браузерных событий
+                    const rect = gridElement.getBoundingClientRect(); // границы сетки
+                    const cellSize = 31; // 30px + 1px gap размер одной плиты с учетом gap
+                    const col = Math.floor((e.clientX - rect.left - 5) / cellSize); // на какой колонке находиться курсор с блоком
+                    const row = Math.floor((e.clientY - rect.top - 5) / cellSize); // на каком ряду находиться курсор с блоком
+                    console.log(col, row)
+                    this.highlightPlacement(row, col, this.draggedBlock); // подсветка в сетке о расположении блока что находиться пока что в курсоре
+                });
+
+                gridElement.addEventListener('drop', (e) => { // в случае когда курсор отпускает блок над сеткой
+                    e.preventDefault(); // отмена браузерных событий
+                    const rect = gridElement.getBoundingClientRect(); // границы сетки
+                    const cellSize = 31; // 30px + 1px gap размер одной плиты с учетом gap
+                    const col = Math.floor((e.clientX - rect.left - 5) / cellSize); // на какой колонке находиться курсор с блоком
+                    const row = Math.floor((e.clientY - rect.top - 5) / cellSize); // на каком ряду находиться курсор с блоком
+
+                    this.clearHighlight(); // отчистка сетки от подсветки расположения блока когда того держал курсор 
+                    if (this.placeBlock(this.draggedBlock.shape, row, col)) { 
+                        this.draggedBlock.element.remove();
+                        this.currentBlocks = this.currentBlocks.filter(b => b !== this.draggedBlock);
+                        if (this.currentBlocks.length === 0) this.generateNewBlocks();
+                    }
+                });
+
+                gridElement.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const rect = gridElement.getBoundingClientRect();
+                    const cellSize = 31;
+                    const col = Math.floor((e.clientX - rect.left - 5) / cellSize);
+                    const row = Math.floor((e.clientY - rect.top - 5) / cellSize);
+                    log(col, row)
+                })
+
+                gridElement.addEventListener('dragleave', () => this.clearHighlight());
+            }
+
+            generateNewBlocks() {
+                this.currentBlocks = [];
+                const container = document.getElementById('blocks-container');
+                container.innerHTML = '';
+
+                for (let i = 0; i < 3; i++) {
+                    const shape = this.blockShapes[Math.floor(Math.random() * this.blockShapes.length)];
+                    const blockElement = this.createBlockElement(shape);
+                    const blockData = { shape, element: blockElement };
+                    this.currentBlocks.push(blockData);
+                    container.appendChild(blockElement);
+                }
+            }
+
+            createBlockElement(shape) {
+                const block = document.createElement('div');
+                block.className = 'block';
+                block.draggable = true;
+                block.style.gridTemplateColumns = `repeat(${shape[0].length}, 20px)`;
+                block.style.gridTemplateRows = `repeat(${shape.length}, 20px)`;
+
+                shape.forEach(row => {
+                    row.forEach(cell => {
+                        const cellElement = document.createElement('div');
+                        cellElement.className = cell ? 'block-cell' : 'block-cell empty';
+                        block.appendChild(cellElement);
+                    });
+                });
+
+                block.addEventListener('dragstart', (e) => {
+                    this.draggedBlock = this.currentBlocks.find(b => b.element === block);
+                    block.classList.add('dragging');
+                });
+
+                block.addEventListener('dragend', () => {
+                    block.classList.remove('dragging');
+                    this.clearHighlight();
+                });
+
+                return block;
+            }
+
+            highlightPlacement(row, col, blockData) {
+
+                this.clearHighlight();
+                if (!blockData) return;
+
+                const canPlace = this.canPlace(blockData.shape, row, col);
+                const cells = document.querySelectorAll('.cell');
+                log(blockData)
+                blockData.shape.forEach((shapeRow, r) => {
+                    shapeRow.forEach((cell, c) => {
+                        if (cell) {
+                            const targetRow = row + r;
+                            const targetCol = col + c;
+                            if (targetRow >= 0 && targetRow < 10 && targetCol >= 0 && targetCol < 10) {
+                                const cellIndex = targetRow * 10 + targetCol;
+                                cells[cellIndex].classList.add(canPlace ? 'highlight' : 'invalid');
+                            }
+                        }
+                    });
+                });
+            }
+
+            clearHighlight() {
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('highlight', 'invalid');
+                });
+            }
+
+            canPlace(shape, row, col) {
+                for (let r = 0; r < shape.length; r++) {
+                    for (let c = 0; c < shape[r].length; c++) {
+                        if (shape[r][c]) {
+                            const newRow = row + r;
+                            const newCol = col + c;
+                            if (newRow < 0 || newRow >= 10 || newCol < 0 || newCol >= 10 || this.grid[newRow][newCol]) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                console.log('You can')
+                return true;
+            }
+
+            placeBlock(shape, row, col) {
+                if (!this.canPlace(shape, row, col)) return false;
+
+                shape.forEach((shapeRow, r) => {
+                    shapeRow.forEach((cell, c) => {
+                        if (cell) {
+                            this.grid[row + r][col + c] = 1;
+                        }
+                    });
+                });
+
+                this.updateGridDisplay();
+                this.clearLines();
+                return true;
+            }
+
+            updateGridDisplay() {
+                const cells = document.querySelectorAll('.cell');
+                this.grid.forEach((row, r) => {
+                    row.forEach((cell, c) => {
+                        const cellIndex = r * 10 + c;
+                        cells[cellIndex].classList.toggle('filled', cell === 1);
+                    });
+                });
+            }
+
+            clearLines() {
+                let cleared = 0;
+
+                // Clear full rows
+                for (let r = 0; r < 10; r++) {
+                    if (this.grid[r].every(cell => cell === 1)) {
+                        this.grid[r].fill(0);
+                        cleared++;
+                    }
+                }
+
+                // Clear full columns
+                for (let c = 0; c < 10; c++) {
+                    if (this.grid.every(row => row[c] === 1)) {
+                        this.grid.forEach(row => row[c] = 0);
+                        cleared++;
+                    }
+                }
+
+                if (cleared > 0) {
+                    this.score += cleared * 100;
+                    this.updateScore();
+                    this.updateGridDisplay();
+                }
+            }
+
+            updateScore() {
+                document.getElementById('score').textContent = this.score;
+            }
+        }
+
+        // Start the game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new BlockBlaster();
+        });
+    </script>
+</body>
+
+</html>

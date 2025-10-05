@@ -22,7 +22,7 @@
             <div class="game_navigations_indicator record">
                 <img src="./assets/Icon_Best Score.svg" alt="" class="game_navigations_indicator_img record">
 
-                540
+                <span id="score">0</span>
             </div>
 
             <button class="game_navigations_go settings" id="settings">
@@ -31,75 +31,15 @@
         </div>
         <div class="game_container">
 
-            <div class="game_container_arena">
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
-                <div class="game_container_arena_item"></div>
+            <div class="game_container_arena" id="game_container_arena">
+                <!-- <div class="game_container_arena_item"></div> -->
             </div>
 
-            <div class="game_container_drops">
-                <div class="game_container_drops_item" draggable="true">
+            <div class="game_container_drops" id="game_container_drops">
+                <div class="game_container_drops_port first"></div>
+                <div class="game_container_drops_port second"></div>
+                <div class="game_container_drops_port tired"></div>
+                <!-- <div class="game_container_drops_item" draggable="true">
                     <img src="./assets/Frame 5 (2).svg" alt="">
                 </div>
                 <div class="game_container_drops_item" draggable="true">
@@ -107,7 +47,7 @@
                 </div>
                 <div class="game_container_drops_item" draggable="true">
                     <img src="./assets/Frame 5.svg" alt="">
-                </div>
+                </div> -->
             </div>
         </div>
     </section>
@@ -161,46 +101,7 @@
         </div>
     </section>
 
-    <script>
-        const switchs_a = document.getElementById('switch-a');
-        const switchs_b = document.getElementById('switch-b');
-        const btnSettings = document.getElementById('settings');
-        const btnClose = document.getElementById('close');
-        const settings = document.getElementById('settingsId');
-        const modal = document.getElementById('modal');
-        function handleClick() {
-            console.dir(switchs_a.checked)
-            console.dir(switchs_b.checked)
-        }
-        const toggleModal = () => {
-            modal.classList.toggle('open')
-        }
-
-        const toggleSettings = () => {
-            settings.classList.toggle('open')
-            console.log('a')
-        }
-
-        btnSettings.addEventListener('click', ()=>toggleSettings())
-
-        btnClose.addEventListener('click', ()=>toggleSettings())
-
-        const redirect = (word, page) => {
-            const newPath = window.location.origin + window.location.pathname.replace(word, page)
-            window.location.href = newPath
-        }
-
-        const matixArena = [
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0]
-        ]
-    </script>
+    <script type="module" src="BlockBlast.js"></script>
 </body>
 
 </html>
