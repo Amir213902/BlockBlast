@@ -1,3 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Noto Sans', sans-serif;
+    color: #fff;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    overflow: hidden;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    background-color: #001D85;
+    background-image: linear-gradient(#001D85, #5423DF);
+    background-repeat: no-repeat;
+}
+
 @keyframes myAnimation {
     0% {
         background-color: #15118E;
@@ -228,3 +251,4 @@ section.game {
         }
     }
 }
+
