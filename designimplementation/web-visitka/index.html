@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Block Blast — Пазл-игра</title>
+    <link rel="preload" as="image" href="assets/Frame 30.svg">
+    <link rel="stylesheet" href="site.css">
+    <meta name="theme-color" content="#001D85">
+    <meta name="description" content="Block Blast — расслабляющая пазл‑игра 8×8. Ставь блоки, собирай линии, побеждай рекорды.">
+  </head>
+  <body>
+    <header class="header">
+      <div class="container header__inner">
+        <a class="brand" href="#">
+          <img class="brand__logo" src="assets/Frame 30.svg" alt="Block Blast logo">
+          <span class="brand__name">Block Blast</span>
+        </a>
+        <nav class="nav">
+          <a class="nav__link" href="#features">Особенности</a>
+          <a class="nav__link" href="#how">Как играть</a>
+          <a class="nav__cta" href="game.html">Играть</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <img class="decor decor--top" src="assets/Union (1).svg" alt="">
+        <div class="container hero__inner">
+          <div class="hero__content">
+            <h1 class="hero__title">Поставь блок — сломай линию</h1>
+            <p class="hero__subtitle">Простая и затягивающая 8×8 головоломка. Идеально, чтобы расслабиться и побить собственный рекорд.</p>
+            <div class="hero__actions">
+              <a class="btn btn--primary" href="game.html">
+                <img src="assets/Icon_Best Score.svg" alt="" class="btn__icon"> Играть сейчас
+              </a>
+              <a class="btn btn--ghost" href="#features">Узнать больше</a>
+            </div>
+          </div>
+          <div class="hero__art">
+            <div class="board">
+              <!-- Имитация поля 8×8 -->
+            </div>
+          </div>
+        </div>
+        <img class="decor decor--bottom" src="assets/Union.svg" alt="">
+      </section>
+
+      <section id="features" class="features">
+        <div class="container features__grid">
+          <article class="feature">
+            <div class="feature__icon"><img src="assets/Icon_Sound.svg" alt=""></div>
+            <h3 class="feature__title">Спокойный флоу</h3>
+            <p class="feature__text">Никаких таймеров — только вы, блоки и стратегия. Играйте в своём темпе.</p>
+          </article>
+          <article class="feature">
+            <div class="feature__icon"><img src="assets/Icon_Settings.svg" alt=""></div>
+            <h3 class="feature__title">Чистая механика</h3>
+            <p class="feature__text">Собирайте полные линии по горизонтали и вертикали, чтобы заработать очки.</p>
+          </article>
+          <article class="feature">
+            <div class="feature__icon"><img src="assets/Icon_Best Score.svg" alt=""></div>
+            <h3 class="feature__title">Охота за рекордом</h3>
+            <p class="feature__text">Возвращайтесь снова и снова, чтобы улучшить лучший результат.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="how" class="how">
+        <div class="container how__inner">
+          <h2 class="how__title">Как играть</h2>
+          <ol class="steps">
+            <li class="steps__item">Перетащите один из трёх доступных блоков на поле 8×8.</li>
+            <li class="steps__item">Соберите полную линию — она исчезнет, а вы получите очки.</li>
+            <li class="steps__item">Продолжайте, пока есть доступные ходы. Побейте свой рекорд!</li>
+          </ol>
+          <a class="btn btn--primary btn--center" href="game.html">
+            <img src="assets/Icon_Back.svg" alt="" class="btn__icon btn__icon--left"> Начать игру
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <span class="footer__copy">© <span id="year"></span> Block Blast</span>
+        <a class="footer__link" href="#">Политика конфиденциальности</a>
+      </div>
+    </footer>
+
+    <script>
+      // Рендер 8×8 сетки в герое
+      const board = document.querySelector('.board');
+      if (board) {
+        for (let i = 0; i < 64; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'board__cell';
+          board.appendChild(cell);
+        }
+        // Несколько "заполненных" ячеек для вида
+        [9,10,11, 18, 27, 28, 29, 30, 37, 46, 55].forEach(i => {
+          const n = board.children[i];
+          if (n) n.classList.add('board__cell--filled');
+        });
+      }
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+  </body>
+  
+</html>
+
+
