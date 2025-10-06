@@ -5,7 +5,7 @@ section.home {
     align-items: center;
     justify-content: center;
 
-    .home_container {      
+    .home_container {
         width: 100%;
         height: 100%;
         display: flex;
@@ -23,7 +23,7 @@ section.home {
         gap: 20px;
     }
 
-    .home_navigation button{
+    .home_navigation button {
         width: 280px;
         height: 80px;
         border-radius: 10px;
@@ -32,6 +32,7 @@ section.home {
         font-weight: bolder;
         text-shadow: 0 1px 3px #0000008b;
         border-bottom: 5px solid #0000005b;
+        cursor: pointer;
     }
 
     .home_navigation_single_game_start {
@@ -42,10 +43,11 @@ section.home {
     .home_decor {
         position: fixed;
         width: 100%;
-        object-fit: contain;
+        object-fit: cover;
         opacity: 0.3;
         background-blend-mode: soft-light;
         z-index: -1;
+
         &.top {
             top: 0;
         }
@@ -55,5 +57,38 @@ section.home {
         }
     }
 
+    @media (min-width: 530px) {
+        .home_decor {
+            &.top {
+                top: -20%;
+            }
 
+            &.bottom {
+                bottom: -30%;
+            }
+        }
+    }
+
+    @media (min-width: 830px) {
+        .home_decor {
+            &.top {
+                display: none;
+                top: -50%;
+            }
+
+            &.bottom {
+                display: none;
+                bottom: -50%;
+            }
+        }
+    }
 }
+
+
+
+/* 
+@media (min-width: 600px) {
+    .home_decor {
+        display: none;
+    }
+} */

@@ -4,41 +4,42 @@ export default class BlockBlast {
     constructor() {
         this.isMobileUser = device.tablet || device.mobile
         this.grid = Array(8).fill().map(() => Array(8).fill(0))
+        this.isGameScaled = window.innerWidth < 500
         this.score = 0
         this.currentBlocks = []
         this.blockShapes = [
-            // [
-            //     [1]
-            // ],
-            // [
-            //     [1, 1]
-            // ],
-            // [
-            //     [1, 0],
-            //     [1, 1],
-            // ],
-            // [
-            //     [1, 1],
-            //     [0, 1]
-            // ],
-            // [
-            //     [1, 1],
-            //     [1, 1]
-            // ],
-            // [
-            //     [1],
-            //     [1],
-            //     [1],
-            // ]
+            [
+                [1]
+            ],
+            [
+                [1, 1]
+            ],
+            [
+                [1, 0],
+                [1, 1],
+            ],
+            [
+                [1, 1],
+                [0, 1]
+            ],
+            [
+                [1, 1],
+                [1, 1]
+            ],
+            [
+                [1],
+                [1],
+                [1],
+            ]
             // [
             // [1, 1, 1, 1, 1, 1, 1, 1]
             // ]
-            [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-            ]
+            // [
+            //     [1, 1, 1, 1],
+            //     [1, 1, 1, 1],
+            //     [1, 1, 1, 1],
+            //     [1, 1, 1, 1],
+            // ]
             // [
             //     [1],
             //     [1],
@@ -64,7 +65,7 @@ export default class BlockBlast {
         // document.getElementById('')
     }
 
-    createGrid() {
+     createGrid() {
         const gridElement = document.getElementById('game_container_arena');
         gridElement.innerHtml = '';
 
@@ -86,9 +87,10 @@ export default class BlockBlast {
         gridElement.addEventListener('dragovera', (e) => {
             e.preventDefault();
             const rect = gridElement.getBoundingClientRect();
-            const cellSize = 47.85
+            const cellSize = this.isGameScaled ? 39.08 : 47.85
+            const difference = this.isGameScaled ? 0 : 1
             const col = Math.floor((e.detail.clientX - rect.left - 29) / cellSize)
-            const row = Math.floor((e.detail.clientY - rect.top - 5) / cellSize)
+            const row = Math.floor((e.detail.clientY - rect.top) / cellSize) - difference
 
             this.highlightPlacement(row, col, this.draggedBlock);
         });
@@ -99,9 +101,10 @@ export default class BlockBlast {
             e.preventDefault();
 
             const rect = gridElement.getBoundingClientRect();
-            const cellSize = 47.85
+            const cellSize = this.isGameScaled ? 39.08 : 47.85
+            const difference = this.isGameScaled ? 0 : 1
             const col = Math.floor((e.detail.clientX - rect.left - 29) / cellSize)
-            const row = Math.floor((e.detail.clientY - rect.top - 5) / cellSize)
+            const row = Math.floor((e.detail.clientY - rect.top) / cellSize) - difference
 
             this.clearHighlight();
             if (this.placeBlock(this.draggedBlock.shape, row, col)) {
@@ -160,12 +163,13 @@ export default class BlockBlast {
                 // block.style.left = `${touch.clientX - (block.offsetWidth / 2)}px`
 
                 // let touch = e.targetTouches[0]; 
-                block.style.top = `${touch.clientY - (block.offsetHeight / 2) - 100}px`
+                const padding = this.isGameScaled ? 100 : 100
+                block.style.top = `${touch.clientY - (block.offsetHeight / 2) - padding}px`
                 block.style.left = `${touch.clientX - (block.offsetWidth / 2)}px`
                 let a = new CustomEvent('dragovera', {
                     detail: {
                         clientX: touch.clientX,
-                        clientY: touch.clientY - 110,
+                        clientY: touch.clientY - padding,
                     }
                 })
                 document.getElementById('game_container_arena').dispatchEvent(a)
@@ -183,12 +187,13 @@ export default class BlockBlast {
             block.addEventListener('touchend', (e) => {
                 // block.classList.remove('dragged')
                 e.preventDefault();
+                const padding = this.isGameScaled ? 100 : 100
 
                 let touch = e.changedTouches[0];
                 let a = new CustomEvent('dropa', {
                     detail: {
                         clientX: touch.clientX,
-                        clientY: touch.clientY - 110,
+                        clientY: touch.clientY - padding,
                     }
                 })
                 document.getElementById('game_container_arena').dispatchEvent(a)
@@ -198,13 +203,15 @@ export default class BlockBlast {
             block.addEventListener('mousemove', (e) => {
                 e.preventDefault()
                 // let touch = e.targetTouches[0]; 
+                const padding = this.isGameScaled ? 100 : 100
+
                 if (e.which === 1) {
-                    block.style.top = `${e.clientY - (block.offsetHeight / 2) - 100}px`
+                    block.style.top = `${e.clientY - (block.offsetHeight / 2) - padding}px`
                     block.style.left = `${e.clientX - (block.offsetWidth / 2)}px`
                     let a = new CustomEvent('dragovera', {
                         detail: {
-                            clientX: e.clientX - 4,
-                            clientY: e.clientY - 115,
+                            clientX: e.clientX,
+                            clientY: e.clientY - padding,
                         }
                     })
                     document.getElementById('game_container_arena').dispatchEvent(a)
@@ -312,10 +319,10 @@ export default class BlockBlast {
 
         this.updateGridDisplay();
         this.animationClearLines(shape, row, col, false)
-        setTimeout(() => {
-            console.log('a')
-            this.animationClearLines(shape, row, col, true);
-        }, 400)
+        // setTimeout(() => {
+        //     console.log('a')
+        //     this.animationClearLines(shape, row, col, true);
+        // }, 400)
         setTimeout(() => {
             this.clearLines();
         }, 400);
@@ -335,9 +342,9 @@ export default class BlockBlast {
 
 
     animationClearLines(shape, row, col, isCleared) {
-        const cells = document.querySelectorAll('.game_container_arena_item');
+        const cells = document.querySelectorAll('.game_container_arena_item')
 
-        let result = 0
+        // let result = 0
         for (let r = 0; r < 8; r++) {
             if (this.grid[r].every(cell => cell === 1)) {
 
@@ -384,27 +391,22 @@ export default class BlockBlast {
 
     clearLines() {
         let cleared = 0;
-
-        // Убирает по ряду
-        for (let r = 0; r < 8; r++) {
-            if (this.grid[r].every(cell => cell === 1)) {
-                this.grid[r].fill(0);
-                cleared++;
+        const cells = document.querySelectorAll('.game_container_arena_item')
+        cells.forEach((el, _) => {
+            if (el.className.indexOf('cleared') != -1) {
+                cleared++
+                el.classList.remove('cleared')
+                this.grid[Number(el.dataset.row)][Number(el.dataset.col)] = 0
+                // console.log(this.grid[Number(el.dataset.row)][0])
+                // console.dir(el.dataset.col)
             }
-        }
-
-        // Убирает по колонкам
-        for (let c = 0; c < 10; c++) {
-            if (this.grid.every(row => row[c] === 1)) {
-                this.grid.forEach(row => row[c] = 0);
-                cleared++;
-            }
-        }
+        })
 
         if (cleared != 0) {
             this.score += cleared * 100;
             this.updateScore();
             this.updateGridDisplay();
+            console.log('Updated')
         }
     }
 

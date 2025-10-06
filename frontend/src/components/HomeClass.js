@@ -1,0 +1,4 @@
+// function hideDecor
+/* function main () {
+
+} */
