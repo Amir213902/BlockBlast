@@ -154,6 +154,13 @@ section.game {
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
+    }
+
+    .game_container_drops_port.selected {
+        border: 2px solid #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 0 0 4px rgba(73, 128, 232, 0.24);
     }
 
     .game_container_drops_item {
@@ -164,39 +171,69 @@ section.game {
         border-radius: 10px;
         display: grid;
         padding: 20px;
-        cursor: grab;
-        /* transition: transform 0.2s; */
-        /* justify-self: center; */
+        cursor: pointer;
         align-items: center;
         justify-items: center;
+        touch-action: none;
 
         img {
-            /* width: 100%;
-            height: 100%; */
             object-fit: contain;
         }
 
-
-        &.dragged {
-            position: absolute;
-            background-color: transparent;
-            width: 100vw;
-            height: 100vh;
-            border: 0;
-
-            .game_container_drops_item_container {
-                gap: 4px;
-                /* width: 100; */
-                /* height: 100%; */
-            }
-
-            .block-cell {
-                width: 43.85px;
-                height: 43.85px;
-                border-radius: 4px;
-            }
+        &.dragging {
+            opacity: 0.3;
+            filter: brightness(0.9) blur(0.5px);
+            transition: opacity 0.1s ease;
         }
 
+    }
+
+    .game_container_drops_item_container {
+        display: grid;
+    }
+}
+
+.drag-overlay {
+    pointer-events: none;
+    position: fixed;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(10, 14, 44, 0.95);
+        color: white;
+        font-size: 14px;
+        z-index: 10000;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        transform: translate(-50%, -50%);
+        will-change: transform, left, top;
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    .drag-overlay-container {
+        display: grid;
+        gap: 6px;
+        transform: scale(1.2);
+        padding: 8px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
+
+.game_container_drops_item_container {
+    display: grid;
+}
+
+    .game_instructions {
+        margin-top: 18px;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+        text-align: center;
+        width: 100%;
     }
 
 

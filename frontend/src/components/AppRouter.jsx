@@ -5,7 +5,7 @@ const AppRouter = () => {
     return (
         <Routes>
             {PublicRoutes.map((el, index)=>(
-                <Route path={el.path} Component={el.element}/>
+                <Route key={index} path={el.path} Component={el.element}/>
             ))}
         </Routes>
     );

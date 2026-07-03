@@ -67,7 +67,7 @@ export default class BlockBlast {
 
      createGrid() {
         const gridElement = document.getElementById('game_container_arena');
-        gridElement.innerHtml = '';
+        gridElement.innerHTML = '';
 
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
@@ -250,7 +250,7 @@ export default class BlockBlast {
 
 
 
-        block.addEventListener('dragend', () => {
+        block.addEventListener('dragend', (e) => {
             e.preventDefault();
 
             block.classList.remove('draggend');
@@ -350,7 +350,7 @@ export default class BlockBlast {
 
                 // this.grid[r].fill(0);
                 // cleared++;
-                cells.forEach((cell, _) => {
+                cells.forEach((cell) => {
                     if (cell.dataset.row == r) {
                         // result += 1
                         if (isCleared) {
@@ -368,7 +368,7 @@ export default class BlockBlast {
 
         for (let c = 0; c < 10; c++) {
             if (this.grid.every(row => row[c] === 1)) {
-                cells.forEach((cell, _) => {
+                cells.forEach((cell) => {
                     if (cell.dataset.col == c) {
                         // result += 1
                         if (isCleared) {
@@ -392,7 +392,7 @@ export default class BlockBlast {
     clearLines() {
         let cleared = 0;
         const cells = document.querySelectorAll('.game_container_arena_item')
-        cells.forEach((el, _) => {
+        cells.forEach((el) => {
             if (el.className.indexOf('cleared') != -1) {
                 cleared++
                 el.classList.remove('cleared')
@@ -414,12 +414,3 @@ export default class BlockBlast {
         document.getElementById('score').textContent = this.score;
     }
 }
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    new BlockBlast();
-});
-// let isClassStarted 
-// let isIntervalOn = setInterval(() => {
-//     // if(document.)
-// }, 0);
