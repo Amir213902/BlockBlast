@@ -226,7 +226,7 @@ section.game {
 
 .game_container_drops_item_container {
     display: grid;
-}
+/* } */
 
     .game_instructions {
         margin-top: 18px;
