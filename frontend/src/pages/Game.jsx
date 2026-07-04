@@ -3,105 +3,10 @@ import "./pages-styles/Game.css";
 import iconBack from "../images/Icon_Back.svg";
 import iconBest from "../images/Icon_Best Score.svg";
 import iconSettings from "../images/Icon_Settings.svg";
-
-const BLOCK_SHAPES = [
-  [[1]],
-  [[1, 1]],
-  [
-    [1, 0],
-    [1, 1],
-  ],
-  [
-    [1, 1],
-    [0, 1],
-  ],
-  [
-    [1, 1],
-    [1, 1],
-  ],
-  [[1], [1], [1]],
-];
-
-const createGrid = () => Array.from({ length: 8 }, () => Array(8).fill(0));
-const randomShape = () => BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)];
-const createBlocks = () =>
-  Array.from({ length: 3 }, (_, index) => ({ id: `block-${Date.now()}-${index}`, shape: randomShape() }));
-
-const DRAG_VISUAL_SHIFT = 40;
-
-const canPlace = (grid, shape, row, col) => {
-  for (let r = 0; r < shape.length; r += 1) {
-    for (let c = 0; c < shape[r].length; c += 1) {
-      if (shape[r][c]) {
-        const newRow = row + r;
-        const newCol = col + c;
-        if (newRow < 0 || newRow >= 8 || newCol < 0 || newCol >= 8 || grid[newRow][newCol]) {
-          return false;
-        }
-      }
-    }
-  }
-  return true;
-};
-
-const placeShape = (grid, shape, row, col) => {
-  const nextGrid = grid.map((gridRow) => gridRow.slice());
-  shape.forEach((shapeRow, r) => {
-    shapeRow.forEach((cell, c) => {
-      if (cell) {
-        nextGrid[row + r][col + c] = 1;
-      }
-    });
-  });
-  return nextGrid;
-};
-
-const clearFullLines = (grid) => {
-  const nextGrid = grid.map((row) => row.slice());
-  const rowsToClear = nextGrid.map((row) => row.every((cell) => cell === 1));
-  const colsToClear = Array.from({ length: 8 }, (_, col) => nextGrid.every((row) => row[col] === 1));
-  let clearedCount = 0;
-
-  nextGrid.forEach((row, rowIndex) => {
-    row.forEach((cell, colIndex) => {
-      if ((rowsToClear[rowIndex] || colsToClear[colIndex]) && nextGrid[rowIndex][colIndex] === 1) {
-        nextGrid[rowIndex][colIndex] = 0;
-        clearedCount += 1;
-      }
-    });
-  });
-
-  return { nextGrid, clearedCount };
-};
-
-const DraggableBlock = ({ block, onPointerDown, isDragging, dragStyle }) => (
-  <div className="game_container_drops_port">
-    <div
-      className={`game_container_drops_item ${isDragging ? "dragging" : ""}`}
-      style={{ opacity: isDragging ? 0.95 : 1, touchAction: "none", ...dragStyle }}
-      onPointerDown={(event) => onPointerDown(event, block.id)}
-    >
-      <div
-        className="game_container_drops_item_container"
-        style={{
-          gridTemplateColumns: `repeat(${block.shape[0].length}, auto)`,
-          gridTemplateRows: `repeat(${block.shape.length}, auto)`,
-        }}
-      >
-        {block.shape.flat().map((cell, cellIndex) => (
-          <div key={cellIndex} className={cell ? "block-cell" : "block-cell empty"} />
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-
-const ArenaCell = ({ previewClass }) => (
-  <div className={`game_container_arena_item ${previewClass}`}>
-    <div className="arena-cell-inner" />
-  </div>
-);
+import GameArena from "../components/GameArena";
+import GameDropPanel from "../components/GameDropPanel";
+import { createBlocks, createGrid, canPlace, placeShape, clearFullLines } from "../utils/gameUtils";
+import { SCORE_PER_LINE, MOBILE_SCALE_WIDTH, DRAG_VISUAL_SHIFT } from "../utils/gameConfig";
 
 const Game = () => {
   const arenaRef = useRef(null);
@@ -188,7 +93,7 @@ const Game = () => {
         const nextBlocks = blocks.map((item) => (item && item.id === block.id ? null : item));
 
         setGrid(clearedGrid);
-        setScore((currentScore) => currentScore + clearedCount * 100);
+        setScore((currentScore) => currentScore + clearedCount * SCORE_PER_LINE);
         setBlocks(nextBlocks.every((item) => item === null) ? createBlocks() : nextBlocks);
       }
       setDraggingBlockId(null);
@@ -210,7 +115,7 @@ const Game = () => {
 
   return (
     <>
-      <section className={`game${window.innerWidth < 500 ? " scaled" : ""}`}>
+      <section className={`game${window.innerWidth < MOBILE_SCALE_WIDTH ? " scaled" : ""}`}>
         <div className="game_navigations">
           <button className="game_navigations_go home">
             <img src={iconBack} alt="" />
@@ -227,46 +132,14 @@ const Game = () => {
         </div>
 
         <div className="game_container">
-          <div className="game_container_arena" id="game_container_arena" ref={arenaRef}>
-            {grid.map((row, rowIndex) =>
-              row.map((cell, colIndex) => {
-                const previewKey = `${rowIndex}:${colIndex}`;
-                const isPreview = preview?.cells.has(previewKey);
-                const previewClass = `${cell ? "filled" : ""} ${isPreview ? (preview.valid ? "highlight" : "invalid") : ""}`.trim();
-
-                return <ArenaCell key={previewKey} row={rowIndex} col={colIndex} previewClass={previewClass} />;
-              }),
-            )}
-          </div>
-
-          <div className="game_container_drops" id="game_container_drops">
-            {blocks.map((block, index) => {
-              if (!block) {
-                return <div key={index} className="game_container_drops_port empty-slot" />;
-              }
-
-              const isDragging = draggingBlockId === block.id;
-              const dragStyle = isDragging && dragPosition ? {
-                position: "fixed",
-                left: `${dragPosition.x - dragSize.width / 2}px`,
-                top: `${dragPosition.y - dragSize.height / 2 - DRAG_VISUAL_SHIFT}px`,
-                width: `${dragSize.width}px`,
-                height: `${dragSize.height}px`,
-                zIndex: 10001,
-                cursor: "grabbing",
-              } : undefined;
-
-              return (
-                <DraggableBlock
-                  key={block.id}
-                  block={block}
-                  isDragging={isDragging}
-                  dragStyle={dragStyle}
-                  onPointerDown={handlePointerDown}
-                />
-              );
-            })}
-          </div>
+          <GameArena grid={grid} preview={preview} arenaRef={arenaRef} />
+          <GameDropPanel
+            blocks={blocks}
+            draggingBlockId={draggingBlockId}
+            dragPosition={dragPosition}
+            dragSize={dragSize}
+            onPointerDown={handlePointerDown}
+          />
         </div>
       </section>
     </>
