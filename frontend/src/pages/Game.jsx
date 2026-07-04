@@ -114,7 +114,7 @@ const Game = () => {
   const [hoverPosition, setHoverPosition] = useState({ row: -1, col: -1 });
   const [score, setScore] = useState(0);
 
-  const activeBlock = blocks.find((block) => block.id === draggingBlockId) || null;
+  const activeBlock = blocks.find((block) => block && block.id === draggingBlockId) || null;
 
   const preview = useMemo(() => {
     if (!activeBlock || hoverPosition.row < 0) {
@@ -144,7 +144,7 @@ const Game = () => {
 
     const rect = arena.getBoundingClientRect();
     const x = clientX - rect.left;
-    const y = clientY - rect.top - DRAG_VISUAL_SHIFT;
+    const y = clientY - rect.top;
     if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
       setHoverPosition({ row: -1, col: -1 });
       return;
@@ -166,7 +166,7 @@ const Game = () => {
     setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
     setDragSize({ width: rect.width, height: rect.height });
     setDragPosition({ x: event.clientX, y: event.clientY });
-    updateHoverPosition(event.clientX, event.clientY);
+    updateHoverPosition(event.clientX, event.clientY - DRAG_VISUAL_SHIFT);
   };
 
   useEffect(() => {
@@ -177,19 +177,19 @@ const Game = () => {
     const handleMove = (event) => {
       event.preventDefault();
       setDragPosition({ x: event.clientX, y: event.clientY });
-      updateHoverPosition(event.clientX, event.clientY);
+      updateHoverPosition(event.clientX, event.clientY - DRAG_VISUAL_SHIFT);
     };
 
     const handleUp = () => {
-      const block = blocks.find((item) => item.id === draggingBlockId);
+      const block = blocks.find((item) => item && item.id === draggingBlockId);
       if (block && hoverPosition.row >= 0 && hoverPosition.col >= 0 && canPlace(grid, block.shape, hoverPosition.row, hoverPosition.col)) {
         const nextGrid = placeShape(grid, block.shape, hoverPosition.row, hoverPosition.col);
         const { nextGrid: clearedGrid, clearedCount } = clearFullLines(nextGrid);
-        const remainingBlocks = blocks.filter((item) => item.id !== block.id);
+        const nextBlocks = blocks.map((item) => (item && item.id === block.id ? null : item));
 
         setGrid(clearedGrid);
         setScore((currentScore) => currentScore + clearedCount * 100);
-        setBlocks(remainingBlocks.length ? remainingBlocks : createBlocks());
+        setBlocks(nextBlocks.every((item) => item === null) ? createBlocks() : nextBlocks);
       }
       setDraggingBlockId(null);
       setDragPosition(null);
@@ -240,12 +240,16 @@ const Game = () => {
           </div>
 
           <div className="game_container_drops" id="game_container_drops">
-            {blocks.map((block) => {
+            {blocks.map((block, index) => {
+              if (!block) {
+                return <div key={index} className="game_container_drops_port empty-slot" />;
+              }
+
               const isDragging = draggingBlockId === block.id;
               const dragStyle = isDragging && dragPosition ? {
                 position: "fixed",
-                left: `${dragPosition.x - dragOffset.x}px`,
-                top: `${dragPosition.y - dragOffset.y - DRAG_VISUAL_SHIFT}px`,
+                left: `${dragPosition.x - dragSize.width / 2}px`,
+                top: `${dragPosition.y - dragSize.height / 2 - DRAG_VISUAL_SHIFT}px`,
                 width: `${dragSize.width}px`,
                 height: `${dragSize.height}px`,
                 zIndex: 10001,
@@ -262,10 +266,6 @@ const Game = () => {
                 />
               );
             })}
-          </div>
-
-          <div className="game_instructions">
-            {activeBlock ? "Перетащите блок на свободное место арены" : "Потяните блок ниже на поле"}
           </div>
         </div>
       </section>
