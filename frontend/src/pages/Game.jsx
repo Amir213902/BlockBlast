@@ -27,6 +27,8 @@ const randomShape = () => BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.l
 const createBlocks = () =>
   Array.from({ length: 3 }, (_, index) => ({ id: `block-${Date.now()}-${index}`, shape: randomShape() }));
 
+const DRAG_VISUAL_SHIFT = 40;
+
 const canPlace = (grid, shape, row, col) => {
   for (let r = 0; r < shape.length; r += 1) {
     for (let c = 0; c < shape[r].length; c += 1) {
@@ -142,7 +144,7 @@ const Game = () => {
 
     const rect = arena.getBoundingClientRect();
     const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    const y = clientY - rect.top - DRAG_VISUAL_SHIFT;
     if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
       setHoverPosition({ row: -1, col: -1 });
       return;
@@ -243,7 +245,7 @@ const Game = () => {
               const dragStyle = isDragging && dragPosition ? {
                 position: "fixed",
                 left: `${dragPosition.x - dragOffset.x}px`,
-                top: `${dragPosition.y - dragOffset.y}px`,
+                top: `${dragPosition.y - dragOffset.y - DRAG_VISUAL_SHIFT}px`,
                 width: `${dragSize.width}px`,
                 height: `${dragSize.height}px`,
                 zIndex: 10001,
