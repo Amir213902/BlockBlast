@@ -5,8 +5,10 @@ import iconBest from "../images/Icon_Best Score.svg";
 import iconSettings from "../images/Icon_Settings.svg";
 import GameArena from "../components/GameArena";
 import GameDropPanel from "../components/GameDropPanel";
-import { createBlocks, createGrid, canPlace, placeShape, clearFullLines } from "../utils/gameUtils";
-import { SCORE_PER_LINE, MOBILE_SCALE_WIDTH, DRAG_VISUAL_SHIFT } from "../utils/gameConfig";
+import FloatingText from "../components/FloatingText";
+import { createBlocks, createGrid, canPlace, placeShape, clearFullLines, canAnyBlockBePlaced } from "../utils/gameUtils";
+import { SCORE_PER_LINE, MOBILE_SCALE_WIDTH, DRAG_VISUAL_SHIFT, MOBILE_DRAG_VISUAL_SHIFT } from "../utils/gameConfig";
+import { playSoundClick, playSoundLineCleared, playSoundGameOver, playSoundBlockPlace } from "../utils/soundEffects";
 
 const Game = () => {
   const arenaRef = useRef(null);
@@ -18,6 +20,13 @@ const Game = () => {
   const [dragSize, setDragSize] = useState({ width: 0, height: 0 });
   const [hoverPosition, setHoverPosition] = useState({ row: -1, col: -1 });
   const [score, setScore] = useState(0);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [floatingTexts, setFloatingTexts] = useState([]);
+  const [vibrating, setVibrating] = useState(false);
+  const [clearedCells, setClearedCells] = useState(new Set());
+
+  // Use mobile drag shift on small screens
+  const dragShift = window.innerWidth < MOBILE_SCALE_WIDTH ? MOBILE_DRAG_VISUAL_SHIFT : DRAG_VISUAL_SHIFT;
 
   const activeBlock = blocks.find((block) => block && block.id === draggingBlockId) || null;
 
@@ -39,6 +48,37 @@ const Game = () => {
 
     return { valid, cells };
   }, [activeBlock, grid, hoverPosition]);
+
+  useEffect(() => {
+    // Check for game over after grid or blocks change
+    if (!canAnyBlockBePlaced(grid, blocks)) {
+      setTimeout(() => setIsGameOver(true), 500);
+    }
+  }, [grid, blocks]);
+
+  const handleGameOver = () => {
+    playSoundGameOver();
+    setIsGameOver(false);
+    setGrid(createGrid());
+    setBlocks(createBlocks());
+    setScore(0);
+    setFloatingTexts([]);
+    setClearedCells(new Set());
+  };
+
+  const triggerVibration = () => {
+    setVibrating(true);
+    setTimeout(() => setVibrating(false), 400);
+  };
+
+  const addFloatingText = (x, y, text) => {
+    const id = Date.now();
+    setFloatingTexts((prev) => [...prev, { id, x, y, text }]);
+  };
+
+  const removeFloatingText = (id) => {
+    setFloatingTexts((prev) => prev.filter((item) => item.id !== id));
+  };
 
   const updateHoverPosition = (clientX, clientY) => {
     const arena = arenaRef.current;
@@ -67,11 +107,12 @@ const Game = () => {
       target.setPointerCapture(event.pointerId);
     }
     const rect = target.getBoundingClientRect();
+    playSoundClick();
     setDraggingBlockId(blockId);
     setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
     setDragSize({ width: rect.width, height: rect.height });
     setDragPosition({ x: event.clientX, y: event.clientY });
-    updateHoverPosition(event.clientX, event.clientY - DRAG_VISUAL_SHIFT);
+    updateHoverPosition(event.clientX, event.clientY - dragShift);
   };
 
   useEffect(() => {
@@ -82,17 +123,28 @@ const Game = () => {
     const handleMove = (event) => {
       event.preventDefault();
       setDragPosition({ x: event.clientX, y: event.clientY });
-      updateHoverPosition(event.clientX, event.clientY - DRAG_VISUAL_SHIFT);
+      updateHoverPosition(event.clientX, event.clientY - dragShift);
     };
 
     const handleUp = () => {
       const block = blocks.find((item) => item && item.id === draggingBlockId);
       if (block && hoverPosition.row >= 0 && hoverPosition.col >= 0 && canPlace(grid, block.shape, hoverPosition.row, hoverPosition.col)) {
-        const nextGrid = placeShape(grid, block.shape, hoverPosition.row, hoverPosition.col);
-        const { nextGrid: clearedGrid, clearedCount } = clearFullLines(nextGrid);
-        const nextBlocks = blocks.map((item) => (item && item.id === block.id ? null : item));
+          playSoundBlockPlace();
+          const nextGrid = placeShape(grid, block.shape, hoverPosition.row, hoverPosition.col);
+          const { nextGrid: clearedGrid, clearedCount } = clearFullLines(nextGrid);
+          const nextBlocks = blocks.map((item) => (item && item.id === block.id ? null : item));
 
-        setGrid(clearedGrid);
+          setGrid(clearedGrid);
+          
+          if (clearedCount > 0) {
+            playSoundLineCleared();
+            triggerVibration();
+            const points = clearedCount * SCORE_PER_LINE;
+            addFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${points}`);
+          } else {
+            playSoundClick();
+          }
+          
         setScore((currentScore) => currentScore + clearedCount * SCORE_PER_LINE);
         setBlocks(nextBlocks.every((item) => item === null) ? createBlocks() : nextBlocks);
       }
@@ -132,16 +184,39 @@ const Game = () => {
         </div>
 
         <div className="game_container">
-          <GameArena grid={grid} preview={preview} arenaRef={arenaRef} />
+          <div className={vibrating ? "vibrating" : ""} style={{ display: "inline-block" }}>
+            <GameArena grid={grid} preview={preview} arenaRef={arenaRef} />
+          </div>
           <GameDropPanel
             blocks={blocks}
             draggingBlockId={draggingBlockId}
             dragPosition={dragPosition}
             dragSize={dragSize}
+            dragShift={dragShift}
             onPointerDown={handlePointerDown}
           />
         </div>
       </section>
+      {floatingTexts.map((item) => (
+        <FloatingText
+          key={item.id}
+          x={item.x}
+          y={item.y}
+          text={item.text}
+          onAnimationEnd={() => removeFloatingText(item.id)}
+        />
+      ))}
+      {isGameOver && (
+        <div className="game-over-modal">
+          <div className="game-over-content">
+            <h2>Game Over</h2>
+            <p>Ваш счёт: <span className="final-score">{score}</span></p>
+            <button className="game-over-restart-btn" onClick={handleGameOver}>
+              Начать заново
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

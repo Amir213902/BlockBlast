@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#000D4D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#15118E;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="blockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4980E8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6BA3FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="192" height="192" fill="url(#bgGradient)" rx="45"/>
+  
+  <!-- Grid lines -->
+  <g stroke="#2D3A7A" stroke-width="2" opacity="0.3">
+    <line x1="48" y1="30" x2="48" y2="162" />
+    <line x1="96" y1="30" x2="96" y2="162" />
+    <line x1="144" y1="30" x2="144" y2="162" />
+    <line x1="30" y1="48" x2="162" y2="48" />
+    <line x1="30" y1="96" x2="162" y2="96" />
+    <line x1="30" y1="144" x2="162" y2="144" />
+  </g>
+  
+  <!-- Block 1 (2x2) -->
+  <g>
+    <rect x="35" y="35" width="40" height="40" fill="url(#blockGradient)" rx="4"/>
+    <rect x="35" y="35" width="40" height="40" fill="none" stroke="#FFD700" stroke-width="2" rx="4" opacity="0.5"/>
+  </g>
+  
+  <!-- Block 2 (L-shape) -->
+  <g>
+    <rect x="85" y="50" width="25" height="25" fill="#FFD700" rx="3" opacity="0.8"/>
+    <rect x="85" y="80" width="25" height="25" fill="#FFD700" rx="3" opacity="0.8"/>
+    <rect x="115" y="80" width="25" height="25" fill="#FFD700" rx="3" opacity="0.8"/>
+    <rect x="85" y="50" width="25" height="25" fill="none" stroke="#fff" stroke-width="1.5" rx="3" opacity="0.3"/>
+    <rect x="85" y="80" width="25" height="25" fill="none" stroke="#fff" stroke-width="1.5" rx="3" opacity="0.3"/>
+    <rect x="115" y="80" width="25" height="25" fill="none" stroke="#fff" stroke-width="1.5" rx="3" opacity="0.3"/>
+  </g>
+  
+  <!-- Block 3 (line) -->
+  <g>
+    <rect x="50" y="115" width="20" height="20" fill="#FF6B9D" rx="3" opacity="0.9"/>
+    <rect x="75" y="115" width="20" height="20" fill="#FF6B9D" rx="3" opacity="0.9"/>
+    <rect x="100" y="115" width="20" height="20" fill="#FF6B9D" rx="3" opacity="0.9"/>
+    <rect x="125" y="115" width="20" height="20" fill="#FF6B9D" rx="3" opacity="0.9"/>
+  </g>
+  
+  <!-- Glow effect -->
+  <circle cx="96" cy="96" r="70" fill="none" stroke="#4980E8" stroke-width="1" opacity="0.2" />
+</svg>

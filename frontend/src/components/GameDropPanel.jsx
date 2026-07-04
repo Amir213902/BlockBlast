@@ -1,8 +1,8 @@
 import React from "react";
 import DraggableBlock from "./DraggableBlock";
-import { DRAG_VISUAL_SHIFT, DRAG_Z_INDEX } from "../utils/gameConfig";
+import { DRAG_Z_INDEX } from "../utils/gameConfig";
 
-const GameDropPanel = ({ blocks, draggingBlockId, dragPosition, dragSize, onPointerDown }) => (
+const GameDropPanel = ({ blocks, draggingBlockId, dragPosition, dragSize, dragShift, onPointerDown }) => (
   <div className="game_container_drops" id="game_container_drops">
     {blocks.map((block, index) => {
       if (!block) {
@@ -15,7 +15,7 @@ const GameDropPanel = ({ blocks, draggingBlockId, dragPosition, dragSize, onPoin
           ? {
               position: "fixed",
               left: `${dragPosition.x - dragSize.width / 2}px`,
-              top: `${dragPosition.y - dragSize.height / 2 - DRAG_VISUAL_SHIFT}px`,
+              top: `${dragPosition.y - dragSize.height / 2 - dragShift}px`,
               width: `${dragSize.width}px`,
               height: `${dragSize.height}px`,
               zIndex: DRAG_Z_INDEX,
@@ -24,13 +24,14 @@ const GameDropPanel = ({ blocks, draggingBlockId, dragPosition, dragSize, onPoin
           : undefined;
 
       return (
-        <DraggableBlock
-          key={block.id}
-          block={block}
-          isDragging={isDragging}
-          dragStyle={dragStyle}
-          onPointerDown={onPointerDown}
-        />
+        <div key={block.id} className={`game_container_drops_port ${isDragging ? "dragging-container" : ""}`}>
+          <DraggableBlock
+            block={block}
+            isDragging={isDragging}
+            dragStyle={dragStyle}
+            onPointerDown={onPointerDown}
+          />
+        </div>
       );
     })}
   </div>

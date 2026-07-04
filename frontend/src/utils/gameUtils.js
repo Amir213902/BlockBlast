@@ -5,6 +5,25 @@ export const randomShape = () => BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_S
 export const createBlocks = () =>
   Array.from({ length: BLOCK_COUNT }, (_, index) => ({ id: `block-${Date.now()}-${index}`, shape: randomShape() }));
 
+// Check if any valid block placement exists on the grid
+export const canAnyBlockBePlaced = (grid, blocks) => {
+  const validBlocks = blocks.filter((block) => block !== null);
+  if (validBlocks.length === 0) {
+    return false;
+  }
+
+  for (let row = 0; row < GRID_SIZE; row += 1) {
+    for (let col = 0; col < GRID_SIZE; col += 1) {
+      for (const block of validBlocks) {
+        if (canPlace(grid, block.shape, row, col)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
+
 export const canPlace = (grid, shape, row, col) => {
   for (let r = 0; r < shape.length; r += 1) {
     for (let c = 0; c < shape[r].length; c += 1) {
