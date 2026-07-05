@@ -1,69 +1,77 @@
-# Игра Block №6
+# BlockBlast
 
-## Игра школьного назначения
+BlockBlast is a browser puzzle game inspired by block-placement games. The player places generated shapes on an 8x8 arena, clears full rows and columns, earns points, and tries to beat the best score.
 
-Автор игры Амир
+The project is built as a React + Vite app and is prepared as a PWA, so it can work offline after installation.
 
-Суть игры и ее применения
-Суть:
-Игра на подобии Block Blast с аналогичной логикой, однако с модифицированными фишками и некоторыми страницами.
-Применения:
-Автор игры Амир хочет сделать конкурентно захватывающую игру, то есть игру в котором можно мериться умением. Применение находит в своей школе, где примерно 8 октября состоиться ярмарка в которой автор собирается прорекламировать свою игру и применить в мероприятии дабы поддрежать свой класс и взять максимальное КПД с приложения(заработать больше других).
+## Features
 
-## Текущий план
+- 8x8 block arena with drag-and-drop placement.
+- Row and column clearing with score rewards.
+- Best score saved locally in the browser.
+- Game-over detection when no available block can be placed.
+- Animated home and game backgrounds.
+- Theme shop and custom arena styling in settings.
+- Offline indicator and service worker caching.
+- PWA manifest with application icon.
 
-### Дороботки к движку:
- 
-    - Изменение поведения уберания блока после его установки на после -
-    - Переделать перетаскивание блоков --
-    - Переделать события и под мобильные усторойства
-    - Эффекты визуальные и звуковые при определенных событиях
-        Комментарии к этому пункту:
-            Переизучить метод ClearLines в классе BlockBlast
-            Использовать метод ClearLines в классе BlockBlast в процессе исполнения метода highlightPlacement в классе BlockBlast
-    - Изменение цвета интерфейса в случае полной очистки пользователем поля от блоков
-    - Добавить логику подачи блоков
+## Tech Stack
 
-### Фронт:
+- React
+- Vite
+- React Router
+- dnd-kit
+- ESLint
+- Web Audio API for generated sound effects
 
-    - Юзаем ванильный javascript
-    - Приватный вход в игру для ограничения хакерских атак
-    - Роутинг и маршрутизатор страниц
-    - Страница с комнатами для онлайн игры
-    - Добавление некоторых элементов индикаторов в случае игры в онлайне
-    - Мониторнинг трафика
-    - PWA
-    - Сборщик WebPack
+## Getting Started
 
-### Админ:
+Install dependencies:
 
-    - Мониторнинг онлайн аудитории
-    - Вся история онлайн игр
-    - Сборщик WebPack
+```bash
+npm install
+```
 
-### Бэк:
+Start the development server:
 
-    - Базовый экспресс
-    - websocket socket.io
-    - подключение к субд
-    - добавление рейтинга
-    - Сборщик WebPack
+```bash
+npm run dev
+```
 
-### Тестирование:
+Build the production version:
 
-    - Заход в игру онлайн (с Интернетом)
-    - Заход в игру оффлайн (без Интернетом)
-    - Проверка всех дырок и возможных уязвимостей в плане кибербезопасности
-    - Игровой процесс
-    - Заход в другие страницы
-    - Максимальный онлайн
+```bash
+npm run build
+```
 
-### Деплой:
+Preview the production build:
 
-    - Docker контейниризация
-    - Cubernets управление контейнерами
-    - Nginx веб сервер
-    - GitLab CI / CD
-    - Мониторнинг Grafana и Kafka
+```bash
+npm run preview
+```
 
-### Сервер облачный Selectel
+Run lint checks:
+
+```bash
+npm run lint
+```
+
+## Project Structure
+
+```text
+src/
+  components/       Reusable game and UI components
+  images/           SVG logos, icons, and decoration assets
+  pages/            Home, game, and fallback pages
+  utils/            Game rules, constants, block generation, and sounds
+public/
+  manifest.json     PWA metadata
+  sw.js             Service worker
+  app-logo.svg      PWA and favicon logo
+```
+
+## PWA Notes
+
+The app includes a manifest and service worker. After the production build is served, the browser can cache the app shell and static assets, allowing the game to reopen without a network connection.
+
+If the app was already installed before icon or cache changes, reinstalling it may be needed for the operating system to refresh the icon.
