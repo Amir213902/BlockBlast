@@ -8,7 +8,7 @@ import GameArena from "../components/GameArena";
 import GameDropPanel from "../components/GameDropPanel";
 import FloatingText from "../components/FloatingText";
 import { createBlocks, createGrid, canPlace, placeShape, clearFullLines, canAnyBlockBePlaced } from "../utils/gameUtils";
-import { GRID_SIZE, SCORE_PER_LINE, MOBILE_SCALE_WIDTH, DRAG_VISUAL_SHIFT, MOBILE_DRAG_VISUAL_SHIFT } from "../utils/gameConfig";
+import { DRAG_Z_INDEX, GRID_SIZE, SCORE_PER_LINE, MOBILE_SCALE_WIDTH, DRAG_VISUAL_SHIFT, MOBILE_DRAG_VISUAL_SHIFT } from "../utils/gameConfig";
 import { playSoundClick, playSoundLineCleared, playSoundGameOver, playSoundBlockPlace } from "../utils/soundEffects";
 
 const THEME_KEY = "block-blast-theme";
@@ -79,10 +79,6 @@ const Game = () => {
   const [grid, setGrid] = useState(createGrid);
   const [blocks, setBlocks] = useState(createBlocks);
   const [draggingBlockId, setDraggingBlockId] = useState(null);
-  const [dragPosition, setDragPosition] = useState(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [dragShapeOffset, setDragShapeOffset] = useState({ x: 0, y: 0 });
-  const [dragSize, setDragSize] = useState({ width: 0, height: 0 });
   const [hoverPosition, setHoverPosition] = useState({ row: -1, col: -1 });
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -92,6 +88,16 @@ const Game = () => {
   const [settingsTab, setSettingsTab] = useState("themes");
   const [selectedTheme, setSelectedTheme] = useState(getSavedTheme);
   const [customTheme, setCustomTheme] = useState(getSavedCustomTheme);
+  const dragElementRef = useRef(null);
+  const dragMetricsRef = useRef({
+    offset: { x: 0, y: 0 },
+    shapeOffset: { x: 0, y: 0 },
+  });
+  const hoverPositionRef = useRef({ row: -1, col: -1 });
+  const pendingDragPointRef = useRef(null);
+  const dragAnimationRef = useRef(null);
+  const dragShapeRef = useRef(null);
+  const arenaMetricsRef = useRef(null);
 
   // Use mobile drag shift on small screens
   const dragShift = window.innerWidth < MOBILE_SCALE_WIDTH ? MOBILE_DRAG_VISUAL_SHIFT : DRAG_VISUAL_SHIFT;
@@ -199,31 +205,99 @@ const Game = () => {
 
   const getHoverPosition = useCallback((clientX, clientY, shape) => {
     const arena = arenaRef.current;
-    if (!arena || !shape) {
+    const arenaMetrics = arenaMetricsRef.current;
+    if ((!arena && !arenaMetrics) || !shape) {
       return { row: -1, col: -1 };
     }
 
-    const rect = arena.getBoundingClientRect();
-    const shapeCenterX = clientX - dragOffset.x + dragShapeOffset.x;
-    const shapeCenterY = clientY - dragOffset.y - dragShift + dragShapeOffset.y;
-    const x = shapeCenterX - rect.left;
-    const y = shapeCenterY - rect.top;
-    if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+    const metrics = arenaMetrics || (() => {
+      const rect = arena.getBoundingClientRect();
+      return {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        cellWidth: rect.width / GRID_SIZE,
+        cellHeight: rect.height / GRID_SIZE,
+      };
+    })();
+    const { offset, shapeOffset } = dragMetricsRef.current;
+    const shapeCenterX = clientX - offset.x + shapeOffset.x;
+    const shapeCenterY = clientY - offset.y - dragShift + shapeOffset.y;
+    const x = shapeCenterX - metrics.left;
+    const y = shapeCenterY - metrics.top;
+    if (x < 0 || y < 0 || x > metrics.width || y > metrics.height) {
       return { row: -1, col: -1 };
     }
 
     const shapeWidth = Math.max(...shape.map((shapeRow) => shapeRow.length));
     const shapeHeight = shape.length;
-    const cellWidth = rect.width / GRID_SIZE;
-    const cellHeight = rect.height / GRID_SIZE;
-    const col = Math.round(x / cellWidth - shapeWidth / 2);
-    const row = Math.round(y / cellHeight - shapeHeight / 2);
+    const col = Math.round(x / metrics.cellWidth - shapeWidth / 2);
+    const row = Math.round(y / metrics.cellHeight - shapeHeight / 2);
     return { row, col };
-  }, [dragOffset, dragShapeOffset, dragShift]);
+  }, [dragShift]);
 
   const updateHoverPosition = useCallback((clientX, clientY, shape) => {
-    setHoverPosition(getHoverPosition(clientX, clientY, shape));
+    const nextPosition = getHoverPosition(clientX, clientY, shape);
+    const currentPosition = hoverPositionRef.current;
+    if (nextPosition.row !== currentPosition.row || nextPosition.col !== currentPosition.col) {
+      hoverPositionRef.current = nextPosition;
+      setHoverPosition(nextPosition);
+    }
   }, [getHoverPosition]);
+
+  const moveDraggedElement = useCallback((clientX, clientY) => {
+    const element = dragElementRef.current;
+    if (!element) {
+      return;
+    }
+
+    const { offset } = dragMetricsRef.current;
+    const x = clientX - offset.x;
+    const y = clientY - offset.y - dragShift;
+    element.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1.4)`;
+  }, [dragShift]);
+
+  const scheduleDragUpdate = useCallback((clientX, clientY, shape) => {
+    pendingDragPointRef.current = { x: clientX, y: clientY, shape };
+    if (dragAnimationRef.current) {
+      return;
+    }
+
+    dragAnimationRef.current = window.requestAnimationFrame(() => {
+      dragAnimationRef.current = null;
+      const point = pendingDragPointRef.current;
+      if (point) {
+        moveDraggedElement(point.x, point.y);
+        updateHoverPosition(point.x, point.y, point.shape);
+      }
+    });
+  }, [moveDraggedElement, updateHoverPosition]);
+
+  const resetDraggedElement = useCallback(() => {
+    if (dragAnimationRef.current) {
+      window.cancelAnimationFrame(dragAnimationRef.current);
+      dragAnimationRef.current = null;
+    }
+    pendingDragPointRef.current = null;
+    dragShapeRef.current = null;
+    arenaMetricsRef.current = null;
+
+    const element = dragElementRef.current;
+    if (element) {
+      element.classList.remove("dragging");
+      element.style.position = "";
+      element.style.left = "";
+      element.style.top = "";
+      element.style.width = "";
+      element.style.height = "";
+      element.style.zIndex = "";
+      element.style.cursor = "";
+      element.style.transform = "";
+      element.style.contain = "";
+    }
+    dragElementRef.current = null;
+  }, []);
 
   const handlePointerDown = (event, blockId) => {
     event.preventDefault();
@@ -244,13 +318,33 @@ const Game = () => {
       x: shapeRect.left + shapeRect.width / 2 - rect.left,
       y: shapeRect.top + shapeRect.height / 2 - rect.top,
     };
+    dragElementRef.current = target;
+    dragShapeRef.current = block.shape;
+    dragMetricsRef.current = { offset: pointerOffset, shapeOffset };
+    if (arenaRef.current) {
+      const arenaRect = arenaRef.current.getBoundingClientRect();
+      arenaMetricsRef.current = {
+        left: arenaRect.left,
+        top: arenaRect.top,
+        width: arenaRect.width,
+        height: arenaRect.height,
+        cellWidth: arenaRect.width / GRID_SIZE,
+        cellHeight: arenaRect.height / GRID_SIZE,
+      };
+    }
+    target.style.position = "fixed";
+    target.style.left = "0";
+    target.style.top = "0";
+    target.style.width = `${rect.width}px`;
+    target.style.height = `${rect.height}px`;
+    target.style.zIndex = DRAG_Z_INDEX;
+    target.style.cursor = "grabbing";
+    target.style.contain = "layout paint style";
+    moveDraggedElement(event.clientX, event.clientY);
 
     playSoundClick();
     setDraggingBlockId(blockId);
-    setDragOffset(pointerOffset);
-    setDragShapeOffset(shapeOffset);
-    setDragSize({ width: rect.width, height: rect.height });
-    setDragPosition({ x: event.clientX, y: event.clientY });
+    hoverPositionRef.current = { row: -1, col: -1 };
     setHoverPosition({ row: -1, col: -1 });
   };
 
@@ -261,14 +355,12 @@ const Game = () => {
 
     const handleMove = (event) => {
       event.preventDefault();
-      const block = blocks.find((item) => item && item.id === draggingBlockId);
-      setDragPosition({ x: event.clientX, y: event.clientY });
-      updateHoverPosition(event.clientX, event.clientY, block?.shape);
+      scheduleDragUpdate(event.clientX, event.clientY, dragShapeRef.current);
     };
 
     const handleUp = (event) => {
       const block = blocks.find((item) => item && item.id === draggingBlockId);
-      const dropPosition = block ? getHoverPosition(event.clientX, event.clientY, block.shape) : hoverPosition;
+      const dropPosition = block ? getHoverPosition(event.clientX, event.clientY, block.shape) : hoverPositionRef.current;
       if (block && dropPosition.row >= 0 && dropPosition.col >= 0 && canPlace(grid, block.shape, dropPosition.row, dropPosition.col)) {
           playSoundBlockPlace();
           const nextGrid = placeShape(grid, block.shape, dropPosition.row, dropPosition.col);
@@ -289,10 +381,9 @@ const Game = () => {
         setScore((currentScore) => currentScore + clearedCount * SCORE_PER_LINE);
         setBlocks(nextBlocks.every((item) => item === null) ? createBlocks(clearedGrid) : nextBlocks);
       }
+      resetDraggedElement();
       setDraggingBlockId(null);
-      setDragPosition(null);
-      setDragOffset({ x: 0, y: 0 });
-      setDragShapeOffset({ x: 0, y: 0 });
+      hoverPositionRef.current = { row: -1, col: -1 };
       setHoverPosition({ row: -1, col: -1 });
     };
 
@@ -305,7 +396,7 @@ const Game = () => {
       window.removeEventListener("pointerup", handleUp);
       window.removeEventListener("pointercancel", handleUp);
     };
-  }, [draggingBlockId, hoverPosition, blocks, grid, getHoverPosition, updateHoverPosition]);
+  }, [draggingBlockId, blocks, grid, getHoverPosition, scheduleDragUpdate, resetDraggedElement]);
 
   return (
     <>
@@ -344,10 +435,6 @@ const Game = () => {
           <GameDropPanel
             blocks={blocks}
             draggingBlockId={draggingBlockId}
-            dragPosition={dragPosition}
-            dragOffset={dragOffset}
-            dragSize={dragSize}
-            dragShift={dragShift}
             onPointerDown={handlePointerDown}
           />
         </div>
